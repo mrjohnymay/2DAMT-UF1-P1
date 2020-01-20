@@ -14,17 +14,9 @@ import dam.m06.uf1.Dades.EquipsBD;
 import dam.m06.uf1.Dades.XML;
 import dam.m06.uf1.Dades.JugadorsBD;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import nu.xom.*;
 
 /**
  *
@@ -153,40 +145,31 @@ public class LogicEquip {
     }
 
     public static Equips carregaDadesDeXML(File fitxer) throws AplicacioException {
-        Equips ret = new Equips();
-        JAXBContext context;
+        Equips ret = new Equips();//Creem els equips
 
         try {
-            context = JAXBContext.newInstance(Equips.class);
-            Unmarshaller unmarshaller = context.createUnmarshaller();
-            ret = (Equips) unmarshaller.unmarshal(fitxer);
-        } catch (JAXBException ex) {
-            Logger.getLogger(LogicEquip.class.getName()).log(Level.SEVERE, null, ex);
+            ret = XML.carregaDadesDeXML(fitxer);//Cridem la funció amb el fitxer del que hem de carregar les dades
+        } catch (DadesException ex) {//Agafem les excepción
+            Logger.getLogger(LogicEquip.class.getName()).log(Level.SEVERE, null, ex);//Passem les excepcions al log
         }
 
-        for (Equip equip : ret.getEquips()) {
+        for (Equip equip : ret.getEquips()) {//Repassem els equips i comprovem les regles de negoci
             reglaNegoci1(equip);
             reglaNegoci4(equip);
 
-            for (Jugador jugador : equip.getJugadors()) {
+            for (Jugador jugador : equip.getJugadors()) {//Recorrem els jugadors i mirem la verificació de les regles de negoci
                 LogicJugador.verificaReglesNegoci(jugador);
             }
         }
 
-        return ret;
+        return ret;//Passem els equips una vegada comprovats
     }
 
     public static void exportaDadesToXML(File fitx, Equips dades) throws AplicacioException {
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(Equips.class);
-
-            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-
-            jaxbMarshaller.marshal(dades, fitx);
-        } catch (JAXBException e) {
-            e.printStackTrace();
+            XML.exportaDadesAXML(fitx, dades);//Cridem a la funció i li passem l'arxiu i els equips
+        } catch (DadesException ex) {//Agafem la excepció
+            Logger.getLogger(LogicEquip.class.getName()).log(Level.SEVERE, null, ex);//Els passem per el log
         }
     }
 
@@ -223,26 +206,14 @@ public class LogicEquip {
     }
 
     public static String desaEquipsCSV(File fitx, Equips e) throws AplicacioException {
-        FileWriter fitxerW = null;
-        String errors = "";
+        String errors = "";//Creem un string d'errors
+        //En aquest try catch cridem a la funció de la capa DADES i agafem una excepció si hi ha
         try {
-            fitxerW = new FileWriter(fitx, false);
-
-            for (Equip equip : e.getEquips()) {
-                fitxerW.write(equip.getId() + "," + equip.getNombre() + "," + equip.getEstadio() + "," + equip.getPoblacion() + "," + equip.getProvincia() + "," + equip.getCp() + System.getProperty("line.separator"));
-            }
-            fitxerW.close();
-        } catch (IOException ex) {
-            Logger.getLogger(LogicEquip.class.getName()).log(Level.SEVERE, null, ex);
-            errors += ex;
-        } finally {
-            try {
-                fitxerW.close();
-            } catch (IOException ex) {
-                Logger.getLogger(LogicEquip.class.getName()).log(Level.SEVERE, null, ex);
-                errors += ex;
-            }
+            CSV.exportaEquipsACSV(fitx, e);
+        } catch (DadesException ex) {
+            errors += ex;//Afegim la excepció a l'estring d'errors
         }
+        
         return errors;
     }
 }
