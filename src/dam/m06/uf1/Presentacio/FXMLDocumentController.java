@@ -43,159 +43,147 @@ import javafx.stage.Stage;
  * @author manel
  */
 public class FXMLDocumentController implements Initializable {
-    
+
     //instancia on es carreguen totes les dades
     Equips dades = new Equips();
-    
+
     //definim una llista observable d'objectes de la classe Jugador
     ObservableList<Jugador> llistaObservableJugadors;
-    
+
     ObservableList<Equip> llistaObservableEquips;
-    
+
     DriverMySql conn;
-    
+
     Stage escena;
-    
+
     //camps equip
     @FXML
     TextField txtIdEquip, txtNomEquip, txtEstadiEquip, txtPoblacioEquip, txtProvinciaEquip, txtCpEquip;
-         
+
     //camps jugadors
     @FXML
     TextField txtIdJugador, txtEquipJugador, txtNomJugador, txtDorsalJugador, txtEdatJugador, txtCpJugador;
-    
-    @FXML 
+
+    @FXML
     TableView taulaJugadors;
-    
-    @FXML 
+
+    @FXML
     TableView taulaEquips;
-    
-    @FXML 
+
+    @FXML
     TableColumn colIdJugador, colEquipJugador, colNomJugador, colDorsalJugador, colEdatJugador, colCpJugador;
-    
-    @FXML 
+
+    @FXML
     TableColumn colIdEquip, colNomEquip, colEstadiEquip, colPoblacioEquip, colProvinciaEquip, colCpEquip;
-    
+
     //<editor-fold defaultstate="collapsed" desc="Jugadors">
     @FXML
     private void handleExportJugadorsToCSV(ActionEvent event) {
         exportarJugadorsACSV();
     }
-    
-     private void exportarJugadorsACSV()
-    {
-        try
-        {
+
+    private void exportarJugadorsACSV() {
+        try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Exportar jugadors a CSV");
             fileChooser.getExtensionFilters().addAll(
-            new ExtensionFilter("Fitxers CSV", "*.csv"),
-            new ExtensionFilter("tots els fitxers", "*.*"));
+                    new ExtensionFilter("Fitxers CSV", "*.csv"),
+                    new ExtensionFilter("tots els fitxers", "*.*"));
             File selectedFile = fileChooser.showSaveDialog(null);
-            
-            if (selectedFile != null)
-            {
+
+            if (selectedFile != null) {
                 Equips e = new Equips();
                 e.setEquips(new ArrayList<>(llistaObservableEquips));
                 LogicJugador.desaJugadorsCSV(selectedFile, e);
 
                 mostrarInfo("Exportació de jugadors realitzada correctament a: " + selectedFile.getAbsolutePath());
             }
-        }
-        catch (AplicacioException ex)
-        {
+        } catch (AplicacioException ex) {
             mostrarAlertaError(ex.toString());
-        }  
+        }
     }
-    
+
     @FXML
-    private void handleOnTaulaJugadorsMouseClicked(MouseEvent event){
-        Jugador jugador = (Jugador)taulaJugadors.getSelectionModel().getSelectedItem();
-        
-        if (jugador != null)
+    private void handleOnTaulaJugadorsMouseClicked(MouseEvent event) {
+        Jugador jugador = (Jugador) taulaJugadors.getSelectionModel().getSelectedItem();
+
+        if (jugador != null) {
             setJugadorToView(jugador);
+        }
     }
-    
+
     @FXML
     private void handleButtonModificaJugador(ActionEvent event) {
         Jugador jugador;
-        
-        try
-        {
+
+        try {
             jugador = this.getJugadorFromView();
             LogicJugador.modifyJugador(jugador);
             carregarJugadorsByIdEquip(jugador.getIdEquip());
-            
-        }
-        catch (AplicacioException | NumberFormatException ex)
-        {
+
+        } catch (AplicacioException | NumberFormatException ex) {
             mostrarAlertaError(ex.toString());
         }
     }
-    
+
     @FXML
     private void handleButtonNetejaJugador(ActionEvent event) {
         clearJugadorFromView();
     }
-    
+
     @FXML
     private void handleButtonEliminaJugador(ActionEvent event) {
         Jugador jugador;
-        
-        try
-        {
+
+        try {
             jugador = this.getJugadorFromView();
             LogicJugador.deleteJugador(jugador);
             carregarJugadorsByIdEquip(jugador.getIdEquip());
-        }
-        catch (AplicacioException | NumberFormatException ex)
-        {
+        } catch (AplicacioException | NumberFormatException ex) {
             mostrarAlertaError(ex.toString());
         }
     }
-    
-     @FXML
+
+    @FXML
     private void handleButtonNouJugador(ActionEvent event) {
-        try
-        {
+        try {
             Jugador jugador = this.getJugadorFromView();
             LogicJugador.insertJugador(jugador);
             carregarJugadorsByIdEquip(jugador.getIdEquip());
-        }
-        catch (AplicacioException | NumberFormatException ex)
-        {
+        } catch (AplicacioException | NumberFormatException ex) {
             mostrarAlertaError(ex.toString());
         }
     }
-    
-    private void carregarJugadorsByIdEquip(int idEquip)
-    {
+
+    private void carregarJugadorsByIdEquip(int idEquip) {
         try {
             llistaObservableJugadors = FXCollections.<Jugador>observableArrayList(LogicJugador.getJugadorsByIdEquip(idEquip));
             clearJugadorFromView();
         } catch (AplicacioException ex) {
             mostrarInfo(ex.toString());
         }
-        
+
         llistaObservableJugadors.addListener(new ListChangeListener<Jugador>() {
-        @Override public void onChanged(ListChangeListener.Change<? extends Jugador> c) {taulaJugadors.refresh();}
+            @Override
+            public void onChanged(ListChangeListener.Change<? extends Jugador> c) {
+                taulaJugadors.refresh();
+            }
         });
-        
+
         taulaJugadors.setItems(llistaObservableJugadors);
-        
-        if (taulaJugadors.getItems().size() > 0) 
-        {
-            setJugadorToView((Jugador)taulaJugadors.getItems().get(0));
+
+        if (taulaJugadors.getItems().size() > 0) {
+            setJugadorToView((Jugador) taulaJugadors.getItems().get(0));
         }
     }
-    
-     /**
-     * Mostra les dades d'un jugador a la 
-     * @param j 
+
+    /**
+     * Mostra les dades d'un jugador a la
+     *
+     * @param j
      */
-    private void setJugadorToView(Jugador j)
-    {
-        
+    private void setJugadorToView(Jugador j) {
+
         txtIdJugador.setText(j.getId().toString());
         txtNomJugador.setText(j.getNombre());
         txtEquipJugador.setText(j.getIdEquip().toString());
@@ -203,157 +191,138 @@ public class FXMLDocumentController implements Initializable {
         txtEdatJugador.setText(j.getEdad().toString());
         txtCpJugador.setText(j.getCp());
     }
-    
-    private void clearJugadorFromView()
-    {
+
+    private void clearJugadorFromView() {
         txtIdJugador.setText("");
         txtNomJugador.setText("");
         txtEquipJugador.setText("");
         txtDorsalJugador.setText("");
         txtEdatJugador.setText("");
         txtCpJugador.setText("");
-        
-         Equip equip = (Equip)taulaEquips.getSelectionModel().getSelectedItem();
-        
-        if (equip != null)
-        {
-             txtEquipJugador.setText(equip.getId().toString());
+
+        Equip equip = (Equip) taulaEquips.getSelectionModel().getSelectedItem();
+
+        if (equip != null) {
+            txtEquipJugador.setText(equip.getId().toString());
         }
     }
-    
-    private Jugador getJugadorFromView()
-    {
+
+    private Jugador getJugadorFromView() {
         Jugador ret = new Jugador();
-        
-       
-        int id = (txtIdJugador.getText().isEmpty())? -1 : Integer.valueOf(txtIdJugador.getText());
+
+        int id = (txtIdJugador.getText().isEmpty()) ? -1 : Integer.valueOf(txtIdJugador.getText());
         ret.setId(id);
         ret.setNombre(txtNomJugador.getText());
         ret.setIdEquip(Integer.parseInt(txtEquipJugador.getText()));
         ret.setDorsal(Integer.parseInt(txtDorsalJugador.getText()));
         ret.setEdad(Integer.parseInt(txtEdatJugador.getText()));
         ret.setCp(txtCpJugador.getText());
-        
+
         return ret;
     }
 //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="Equips">
     @FXML
-    private void handleExportEquipsToCSV(ActionEvent event){
+    private void handleExportEquipsToCSV(ActionEvent event) {
         exportarEquipsACSV();
     }
-    
-    private void exportarEquipsACSV()
-    {
-        try
-        {
+
+    private void exportarEquipsACSV() {
+        try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Exportar a CSV");
             fileChooser.getExtensionFilters().addAll(
-            new ExtensionFilter("Fitxers CSV", "*.csv"),
-            new ExtensionFilter("tots els fitxers", "*.*"));
+                    new ExtensionFilter("Fitxers CSV", "*.csv"),
+                    new ExtensionFilter("tots els fitxers", "*.*"));
             File selectedFile = fileChooser.showSaveDialog(null);
-            if (selectedFile != null)
-            {
+            if (selectedFile != null) {
                 Equips e = new Equips();
                 e.setEquips(new ArrayList<>(llistaObservableEquips));
                 LogicEquip.desaEquipsCSV(selectedFile, e);
 
                 mostrarInfo("Exportació realitzada correctament a: " + selectedFile.getAbsolutePath());
             }
-        }
-        catch (AplicacioException ex)
-        {
+        } catch (AplicacioException ex) {
             mostrarAlertaError(ex.toString());
-        }  
+        }
     }
-    
+
     @FXML
-    private void handleOnTaulaEquipsMouseClicked(MouseEvent event){
-        Equip equip = (Equip)taulaEquips.getSelectionModel().getSelectedItem();
-        
-        if (equip != null)
-        {
+    private void handleOnTaulaEquipsMouseClicked(MouseEvent event) {
+        Equip equip = (Equip) taulaEquips.getSelectionModel().getSelectedItem();
+
+        if (equip != null) {
             setEquipToView(equip);
-            
+
             carregarJugadorsByIdEquip(equip.getId());
         }
     }
-    
+
     @FXML
     private void handleButtonCarregarEquips(ActionEvent event) {
-        
+
         carregarEquips();
     }
-    
+
     @FXML
-    private void handleButtonNetejaEquip(ActionEvent event){
+    private void handleButtonNetejaEquip(ActionEvent event) {
         clearEquipFromView();
     }
-    
+
     @FXML
-    private void handleButtonNetejarEquips(ActionEvent event){
+    private void handleButtonNetejarEquips(ActionEvent event) {
         llistaObservableEquips.clear();
     }
-    
+
     @FXML
-    private void handleButtonNouEquip(ActionEvent event){
-        try
-        {
+    private void handleButtonNouEquip(ActionEvent event) {
+        try {
             Equip equip = this.getEquipFromView();
             LogicEquip.insertEquip(equip);
             carregarEquips();
-        }
-        catch (AplicacioException | NumberFormatException ex)
-        {
+        } catch (AplicacioException | NumberFormatException ex) {
             mostrarAlertaError(ex.toString());
         }
     }
-    
+
     @FXML
-    private void handleButtonModificaEquip(ActionEvent event){
+    private void handleButtonModificaEquip(ActionEvent event) {
         Equip equip;
-        
-        try
-        {
+
+        try {
             equip = this.getEquipFromView();
             LogicEquip.modifyEquip(equip);
             carregarEquips();
-            
-        }
-        catch (AplicacioException | NumberFormatException ex)
-        {
+
+        } catch (AplicacioException | NumberFormatException ex) {
             mostrarAlertaError(ex.toString());
         }
     }
-    
+
     @FXML
-    private void handleButtonEliminaEquip(ActionEvent event){
+    private void handleButtonEliminaEquip(ActionEvent event) {
         Equip equip;
-        
-        try
-        {
+
+        try {
             equip = this.getEquipFromView();
             LogicEquip.deleteEquip(equip);
             carregarEquips();
-        }
-        catch (AplicacioException | NumberFormatException ex)
-        {
+        } catch (AplicacioException | NumberFormatException ex) {
             mostrarAlertaError(ex.toString());
         }
     }
-    
+
     /**
-     * Captura les dades en pantalla de l'equip
-     * Si no existeix id, li assigna el valor -1
-     * @return 
+     * Captura les dades en pantalla de l'equip Si no existeix id, li assigna el
+     * valor -1
+     *
+     * @return
      */
-    private Equip getEquipFromView()
-    {
+    private Equip getEquipFromView() {
         Equip ret = new Equip();
-        
-        int id = (txtIdEquip.getText().isEmpty())? -1 : Integer.valueOf(txtIdEquip.getText());
+
+        int id = (txtIdEquip.getText().isEmpty()) ? -1 : Integer.valueOf(txtIdEquip.getText());
 
         ret.setId(id);
         ret.setNombre(txtNomEquip.getText());
@@ -361,18 +330,16 @@ public class FXMLDocumentController implements Initializable {
         ret.setPoblacion(txtPoblacioEquip.getText());
         ret.setProvincia(txtProvinciaEquip.getText());
         ret.setCp(txtCpEquip.getText());
-        
+
         return ret;
     }
-    
-    
-    
+
     /**
      * Estableix les dades d'un equip a la pantalla
-     * @param e 
+     *
+     * @param e
      */
-    private void setEquipToView(Equip e)
-    {
+    private void setEquipToView(Equip e) {
         txtIdEquip.setText(e.getId().toString());
         txtNomEquip.setText(e.getNombre());
         txtEstadiEquip.setText(e.getEstadio());
@@ -380,11 +347,8 @@ public class FXMLDocumentController implements Initializable {
         txtProvinciaEquip.setText(e.getProvincia());
         txtCpEquip.setText(e.getCp());
     }
-    
-   
-    
-    private void clearEquipFromView()
-    {
+
+    private void clearEquipFromView() {
         txtIdEquip.setText("");
         txtNomEquip.setText("");
         txtEstadiEquip.setText("");
@@ -392,54 +356,52 @@ public class FXMLDocumentController implements Initializable {
         txtProvinciaEquip.setText("");
         txtCpEquip.setText("");
     }
-    
+
     /**
-     * Carrega les dades dels equips i jugadors 
+     * Carrega les dades dels equips i jugadors
      */
-    private void carregarEquips()
-    {
+    private void carregarEquips() {
         try {
-            
+
             dades.setEquips(LogicEquip.getEquips());
-            
+
             llistaObservableEquips = FXCollections.<Equip>observableArrayList(LogicEquip.getEquips());
-            
+
             llistaObservableEquips.addListener(new ListChangeListener<Equip>() {
-            @Override public void onChanged(ListChangeListener.Change<? extends Equip> c) {taulaEquips.refresh();}
+                @Override
+                public void onChanged(ListChangeListener.Change<? extends Equip> c) {
+                    taulaEquips.refresh();
+                }
             });
-            
+
             taulaEquips.setItems(llistaObservableEquips);
 
-            if (taulaEquips.getItems().size() > 0) 
-            {
-               Equip e = (Equip)llistaObservableEquips.get(0);
-               carregarJugadorsByIdEquip(e.getId());
-               
-               taulaEquips.requestFocus();
-               taulaEquips.getSelectionModel().select(0);
-               taulaEquips.getFocusModel().focus(0);
+            if (taulaEquips.getItems().size() > 0) {
+                Equip e = (Equip) llistaObservableEquips.get(0);
+                carregarJugadorsByIdEquip(e.getId());
+
+                taulaEquips.requestFocus();
+                taulaEquips.getSelectionModel().select(0);
+                taulaEquips.getFocusModel().focus(0);
             }
-            
+
         } catch (AplicacioException ex) {
             mostrarInfo(ex.toString());
         }
     }
-    
-    private void importarDadesFromXML()
-    {
+
+    private void importarDadesFromXML() {
         String errorsImport = "";
-                
-        try
-        {
+
+        try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Importar de XML");
             fileChooser.getExtensionFilters().addAll(
-            new ExtensionFilter("Fitxers XML", "*.xml"),
-            new ExtensionFilter("tots els fitxers", "*.*"));
+                    new ExtensionFilter("Fitxers XML", "*.xml"),
+                    new ExtensionFilter("tots els fitxers", "*.*"));
             File selectedFile = fileChooser.showOpenDialog(null);
-            
-              if (selectedFile != null)
-              {
+
+            if (selectedFile != null) {
 
                 Equips e = new Equips();
 
@@ -456,9 +418,7 @@ public class FXMLDocumentController implements Initializable {
                 //les tornem a carregar per visualitzar-les
                 carregarEquips();
 
-                if (errorsImport.length() > 0)
-                {
-
+                if (errorsImport.length() > 0) {
 
                     try {
                         File temp = File.createTempFile("ErrorsExportacioXML", ".txt");
@@ -473,52 +433,44 @@ public class FXMLDocumentController implements Initializable {
                         mostrarAlertaError("No s'ha pogut generar el fitxer d'errors");
                     }
 
-                } else
+                } else {
                     mostrarInfo("Importació finalitzada sense errors");
-              }
+                }
+            }
 
-        }
-        catch (AplicacioException ex)
-        {
+        } catch (AplicacioException ex) {
             mostrarAlertaError("Error important dades: " + ex.toString());
-        }   
-        
+        }
+
     }
 
-    private void exportarDadesToXML()
-    {
-        try
-        {
+    private void exportarDadesToXML() {
+        try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Exportar a XML");
             fileChooser.getExtensionFilters().addAll(
-            new ExtensionFilter("Fitxers XML", "*.xml"),
-            new ExtensionFilter("tots els fitxers", "*.*"));
+                    new ExtensionFilter("Fitxers XML", "*.xml"),
+                    new ExtensionFilter("tots els fitxers", "*.*"));
             File selectedFile = fileChooser.showSaveDialog(null);
-            
-            if (selectedFile != null)
-            {
+
+            if (selectedFile != null) {
                 Equips e = new Equips();
                 e.setEquips(new ArrayList<>(llistaObservableEquips));
                 LogicEquip.exportaDadesToXML(selectedFile, e);
 
                 mostrarInfo("Exportació realitzada correctament a: " + selectedFile.getAbsolutePath());
             }
-            
-        }
-        catch (AplicacioException ex)
-        {
+
+        } catch (AplicacioException ex) {
             mostrarAlertaError(ex.toString());
-        }        
-    }    
-    
-    
+        }
+    }
+
 //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Altres">
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        
+
         //establim un vincle entre els atributs de la classe Jugador i les columnes del tableView
         colIdJugador.setCellValueFactory(new PropertyValueFactory<>("id"));
         colEquipJugador.setCellValueFactory(new PropertyValueFactory<>("idEquip"));
@@ -534,68 +486,65 @@ public class FXMLDocumentController implements Initializable {
         colPoblacioEquip.setCellValueFactory(new PropertyValueFactory<>("poblacion"));
         colProvinciaEquip.setCellValueFactory(new PropertyValueFactory<>("provincia"));
         colCpEquip.setCellValueFactory(new PropertyValueFactory<>("cp"));
-        
+
         carregarEquips();
-        
-       
+
     }
-    
-    
+
     /**
      * Mostrem l'error per pantalla amb JavaFX
+     *
      * @param txt
      */
-    private void mostrarAlertaError(String txt)
-    {
+    private void mostrarAlertaError(String txt) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("ERROR");
         alert.setContentText(txt);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        
+
         alert.showAndWait();
     }
-    
+
     /**
      * Mostrem l'error per pantalla amb JavaFX
+     *
      * @param txt
      */
-    private void mostrarInfo(String txt)
-    {
+    private void mostrarInfo(String txt) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Info:");
         alert.setContentText(txt);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        
+
         alert.showAndWait();
     }
-    
-   
+
     @FXML
-    private void handleImportDadesXML(ActionEvent event){
-        
+    private void handleImportDadesXML(ActionEvent event) {
+
         importarDadesFromXML();
-       
+
     }
-    
+
     @FXML
-    private void handleExportDadesXML(ActionEvent event){
-        
+    private void handleExportDadesXML(ActionEvent event) {
+
         exportarDadesToXML();
-       
+
     }
-    
-    @FXML void handlePrediccioTemps(ActionEvent event)
-    {
-        
+
+    @FXML
+    void handlePrediccioTemps(ActionEvent event) {
+
         String url = "";
         String missatge = "";
-        
+
         ArrayList<String> urls = new ArrayList<>();
         urls.add("http://www.aemet.es/xml/provincias/20200114_Provincias_6917.xml");
         urls.add("http://www.aemet.es/xml/provincias/20200114_Provincias_6908.xml");
         urls.add("http://www.aemet.es/xml/provincias/20200114_Provincias_6925.xml");
         urls.add("http://www.aemet.es/xml/provincias/20200114_Provincias_6943.xml");
-        
+
         ArrayList<String> choices = new ArrayList<>();
         choices.add("Girona");
         choices.add("Barcelona");
@@ -605,17 +554,17 @@ public class FXMLDocumentController implements Initializable {
         ChoiceDialog<String> dialog = new ChoiceDialog<>("Girona", choices);
         dialog.setTitle("Escollir opció");
         dialog.setContentText("Ciutat:");
-        
+
         Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()){
+        if (result.isPresent()) {
             url = urls.get(choices.indexOf(result.get()));
-            
+
             try {
-                
+
                 missatge = Common.retornaTempsCiutat(url);
-                
-                mostrarInfo("La predicció del temps per " + result.get() + " és: " + System.getProperty("line.separator") + System.getProperty("line.separator") +  missatge);
-                
+
+                mostrarInfo("La predicció del temps per " + result.get() + " és: " + System.getProperty("line.separator") + System.getProperty("line.separator") + missatge);
+
             } catch (AplicacioException ex) {
                 mostrarAlertaError("Error: " + ex.toString());
             }

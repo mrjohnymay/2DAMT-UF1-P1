@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  *
  * @author manel
  */
-@XmlRootElement
+@XmlRootElement//Afegim com element root
 public class Equip {
 
     private Integer id;
@@ -37,7 +37,7 @@ public class Equip {
         this.cp = cp;
     }
 
-    @XmlAttribute
+    @XmlAttribute//L'afegim com atribut
     public Integer getId() {
         return id;
     }
@@ -86,7 +86,7 @@ public class Equip {
         this.cp = cp;
     }
 
-    @XmlElement(name = "jugador")
+    @XmlElement(name = "jugador")//Afegim com element dins d'equip
     public ArrayList<Jugador> getJugadors() {
         return jugadors;
     }

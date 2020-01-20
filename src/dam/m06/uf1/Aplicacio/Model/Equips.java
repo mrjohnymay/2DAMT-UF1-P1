@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  *
  * @author manel
  */
-@XmlRootElement(name = "equips")
+@XmlRootElement(name = "equips")//Afegim com element root
 public class Equips {
 
     private ArrayList<Equip> equips = new ArrayList<>();
@@ -21,7 +21,7 @@ public class Equips {
     public Equips() {
     }
 
-    @XmlElement(name = "equip")
+    @XmlElement(name = "equip")//Afegim com element dins d'equip
     public ArrayList<Equip> getEquips() {
         return equips;
     }

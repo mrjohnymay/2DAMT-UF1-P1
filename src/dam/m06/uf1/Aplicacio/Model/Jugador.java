@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  *
  * @author manel
  */
-@XmlRootElement
+@XmlRootElement//Afegim com element root
 public class Jugador {
 
     private Integer id;
@@ -34,7 +34,7 @@ public class Jugador {
         this.cp = cp;
     }
 
-    @XmlAttribute
+    @XmlAttribute//L'afegim com atribut
     public Integer getId() {
         return id;
     }

@@ -5,11 +5,11 @@
  */
 package dam.m06.uf1.Aplicacio;
 
-import java.io.IOException;
+import dam.m06.uf1.Dades.DadesException;
+import dam.m06.uf1.Dades.XML;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nu.xom.Document;
-import nu.xom.ParsingException;
+
 /**
  *
  * @author manel
@@ -18,21 +18,13 @@ public class Common {
 
     public static String retornaTempsCiutat(String url) throws AplicacioException {
         String ret = "";
+
         try {
-            nu.xom.Builder analitzador = new nu.xom.Builder();
-            Document doc = analitzador.build(url);
-            nu.xom.Element arrel = doc.getRootElement();
-            nu.xom.Element prediccion = arrel.getFirstChildElement("prediccion");
-            
-            for (nu.xom.Element e : prediccion.getChildElements("ciudad")) {
-                ret += "Ciutat: " + e.getFirstChildElement("nombre").getValue() + " Temperatures min/max: " + e.getFirstChildElement("minima").getValue() + ";" + e.getFirstChildElement("maxima").getValue() + "\n";
-            }
-        } catch (ParsingException ex) {
-            Logger.getLogger(Common.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Common.class.getName()).log(Level.SEVERE, null, ex);
+            ret = XML.readRemoteXML(url);//Llegim les dades amb la funció
+        } catch (DadesException ex) {//Agafem les excepcions que venen de DADES
+            Logger.getLogger(Common.class.getName()).log(Level.SEVERE, null, ex);//Mostrem les excepcions per el log
         }
+
         return ret;
     }
-
 }
